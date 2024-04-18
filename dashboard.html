@@ -1,0 +1,411 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link rel="icon" type="image/png" href="./Assets/knorrbremselogo.png">
+        <title>Dashboard</title>
+        <style>
+            #loading {
+              display: none;
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              z-index: 1000;
+            }
+            table {
+              border-collapse: collapse;
+              width: 100%;
+              margin-bottom: 5%;
+            }
+            
+            th,
+            td {
+              border: 1px solid #000;
+              padding: 8px;
+              text-align: left;
+            }
+          </style>
+    </head>
+    <body>
+        <div class="w-full fixed flex bg-gray-200 py-3 overflow-hidden shadow-xl">
+            <div class="w-1/3">
+                <img class="w-64 px-2 cursor-pointer" src="./Assets/knorrlogo2.png" alt="">
+            </div>
+            <div class="w-1/3 flex justify-center">
+                <h1 class="font-bold text-2xl">DATA ANALYSIS DASHBOARD</h1>
+            </div>
+            <div class="w-1/3 justify-end flex px-4">
+                <h1 class="font-semibold cursor-pointer">Logout</h1>
+            </div>
+        </div>
+        <br><br><br>
+        <div class="min-h-screen px-4" id="contentToConvert">
+            <div class="my-3">
+                <h1 class="text-center text-xl">Select the downloaded .txt file, select the parameter for data analysis & press filter.</h1>
+            </div>
+            <br><br>
+            <div class="text-center">
+                <label for="fileInput" class="cursor-pointer bg-green-600 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded-sm">Upload File</label>
+                <input type="file" id="fileInput" accept=".txt" multiple class="hidden" onchange="displayFileName()">
+                <p id="selectedFileName" class="mt-2"></p>
+            </div>
+
+            <br><br><br>
+            <div class="text-center">
+                <h1 class="text-xl font-semibold">&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013; Select Required Parameter &#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;</h1><br>
+                <select class="border border-gray-300 p-2 pr-6 overflow-hidden shadow-md outline-none rounded-sm" id="filterCriteria">
+                    <option value="@PM1">PM1 : 1RD1 Calibration</option>
+                    <option value="@PM2">PM2 : 2RD1 Calibration</option>
+                    <option value="@PM3">PM3 : 1DD Calibration</option>
+                    <option value="@PM4">PM4 : EPU Calibration</option>
+                    <option value="@PM5">PM5 : Load Cell Calibration</option>
+                    <option value="@PM6">PM6 : 1RD1 Atm Pressure</option>
+                    <option value="@PM7">PM7 : 2RD1 Atm Pressure</option>
+                    <option value="@PM8">PM8 : 1DD Atm Pressure</option>
+                    <option value="@PM9">PM9 : EPU_FB Atm Pressure</option>
+                    <option value="@PM10">PM10 : LVDT zero position</option>
+                    <option value="@PM11">PM11 : Initial Load</option>
+                    <option value="@PM12">PM12 : Port1 Pressure</option>
+                    <option value="@PM13">PM13 : Opening Pressure on Port2</option>
+                    <option value="@PM14">PM14 : OPENING PRESSURE LOAD VALUE</option>
+                    <option value="@PM15">PM15 : OPENING PRESSURE POSITION</option>
+                    <option value="@PM16">PM16 : Port1 Pressure</option>
+                    <option value="@PM17">PM17 : Supply Pressure on Port2</option>
+                    <option value="@PM18">PM18 : SUPPLY PRESSURE LOAD VALUE</option>
+                    <option value="@PM19">PM19 : P1=P2</option>
+                    <option value="@PM20">PM20 : Load at max stroke</option>
+                    <option value="@PM21">PM21 : STROKE OF THE PISTON</option>
+                    <option value="@PM22">PM22 : PORT2 PRESSURE AT MAXIMUM STROKE</option>
+                    <option value="@PM23">PM23 : PORT2 PRESSURE DROP</option>
+                    <option value="@PM24">PM24 : FILLING TIME</option>
+                    <option value="@PM25">PM25 : FILLING TIME (in msec)</option>
+                    <option value="@PM26">PM26 : FILLING TIME (in sec)</option>
+                    <option value="@PM27">PM27 : </option>
+                    <option value="@PM28">PM28 : EXHAUST TIME (in msec)</option>
+                    <option value="@PM29">PM29 : EXHAUST TIME (in sec)</option>
+                    <option value="@PM30">PM30 : LEAK AT REST</option>
+                    <option value="@PM31">PM31 : LEAK DURING SUPPLY</option>
+                    <option value="@PM32">PM32 : </option>
+                    <option value="@PM33">PM33 : </option>
+                    <option value="@PM34">PM34 : </option>
+                    <option value="@PM35">PM35 : </option>
+                    <option value="@PM36">PM36 : </option>
+                    <option value="@PM37">PM37 : </option>
+                    <option value="@PM38">PM38 : </option>
+                    <option value="@PM39">PM39 : </option>
+                    <option value="@PM40">PM40 : </option>
+                </select>
+                <button class="bg-blue-600 hover:bg-blue-900 text-white p-2 px-6 overflow-hidden shadow-xl rounded-sm" onclick="filterRows()">Filter</button>
+            </div>
+            <br><br><br>
+
+            <div class="mx-20" id="graphContainer" style="display: none;">
+                <h1 class="text-right text-sm">*Click on Individual Parameters to view/remove their plots*</h1>
+                <canvas class="bg-gray-100 cursor-pointer overflow-hidden shadow-lg p-2" id="graphCanvas" width="400" height="150"></canvas><br><br>
+            </div>
+            <div id="oknok" class="mx-24 justify-center" style="display: none;">
+                <div>
+                    <p class="text-lg bg-green-500 p-2 mx-6 px-6 text-white rounded-sm overflow-hidden shadow-xl">OK Count: <span class="font-semibold" id="okCount">0</span></p>
+                </div>
+                <div>
+                    <p class="text-lg bg-red-600 p-2 mx-6 px-6 text-white rounded-sm overflow-hidden shadow-xl">NOK Count: <span class="font-semibold" id="nokCount">0</span></p>
+                </div>
+            </div>
+            <br><br>
+            <div class="w-full flex">
+                <div class="w-1/2 p-4" id="graphContainer1" style="display: none;">
+                    <div class="w-full grid text-white grid-cols-3 gap-y-8 text-center">
+                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Average Value <br><br><span class="text-4xl font-bold" id="averageValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Minimum Value <br><br><span class="text-4xl font-bold" id="minValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Maximum Value <br><br><span class="text-4xl font-bold" id="maxValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Standard Deviation <br><br><span class="text-4xl font-bold" id="standardDeviationValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Median <br><br><span class="text-4xl font-bold" id="medianValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Skewness <br><br><span class="text-4xl font-bold" id="skewnessValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Kurtosis <br><br><span class="text-4xl font-bold" id="kurtosisValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Interquartile Range <br><br><span class="text-4xl font-bold" id="iqrValue"></span></p>
+                    </div>
+                </div>
+                <div class="w-1/2 p-4 text-sm" id="filteredTableContainer" style="display: none;">
+                    <table id="filteredTable">
+                        <thead>
+                            <tr>
+                                <th>Filtered Rows</th>
+                            </tr>
+                        </thead>
+                        <tbody id="filteredRowsBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <a class="text-right" id="downloadLink" style="display: none;">Download Filtered Rows</a>
+            <br>
+        </div>
+        <script>
+            function displayFileName() {
+                const fileInput = document.getElementById('fileInput');
+                const selectedFileName = document.getElementById('selectedFileName');
+                if (fileInput.files.length > 0) {
+                    selectedFileName.textContent = 'Selected File: ' + fileInput.files[0].name;
+                } else {
+                    selectedFileName.textContent = '';
+                }
+            }
+
+            let myChart; // Declare a global variable to store the chart instance
+
+            function filterRows() {
+                const fileInput = document.getElementById('fileInput');
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                const filterValue = document.getElementById('filterCriteria').value;
+    
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    const lines = content.split('\n');
+                    const filteredRows = lines.filter(line => line.trim().startsWith(filterValue + ' '));
+
+                    let okCount = 0;
+                    let nokCount = 0;
+                    filteredRows.forEach(row => {
+                        const rowData = row.trim().split(' ');
+                        if (rowData.includes('OK')) {
+                            okCount++;
+                        } else if (rowData.includes('NOK')) {
+                            nokCount++;
+                        }
+                    });
+    
+                    document.getElementById('okCount').textContent = okCount;
+                    document.getElementById('nokCount').textContent = nokCount;
+    
+                    const table = document.createElement('table');
+                    table.style.borderCollapse = 'collapse'; // To collapse borders
+    
+                    // Add row and column headings
+                    const headerRow = document.createElement('tr');
+                    const emptyHeaderCell = document.createElement('th'); // Empty cell for corner
+                    headerRow.appendChild(emptyHeaderCell);
+    
+                    // Determine the number of columns based on the length of the longest row
+                    let numCols = 0;
+                    filteredRows.forEach(row => {
+                        const rowData = row.trim().split(' '); // Split by space
+                        numCols = Math.max(numCols, rowData.length);
+                    });
+    
+                    for (let i = 0; i < 10; i++) {
+                        const thElement = document.createElement('th');
+                        thElement.textContent = String.fromCharCode(65 + i); // Column headings from A to J
+                        headerRow.appendChild(thElement);
+                    }
+    
+                    const thElementK = document.createElement('th');
+                    thElementK.textContent = 'K'; // Column heading for K
+                    headerRow.appendChild(thElementK);
+    
+                    table.appendChild(headerRow);
+    
+                    filteredRows.forEach((row, rowIndex) => {
+                        const rowData = row.trim().split(' '); // Split by space
+                        const tr = document.createElement('tr');
+    
+                        // Add row heading
+                        const rowHeading = document.createElement('th');
+                        rowHeading.textContent = rowIndex + 1; // Row headings from 1 onwards
+                        tr.appendChild(rowHeading);
+    
+                        // Add data to columns A to J
+                        for (let i = 0; i < 10; i++) {
+                            const td = document.createElement('td');
+                            if (i < rowData.length) {
+                                td.textContent = rowData[i];
+                            } else {
+                                td.textContent = ''; // Empty cell if no data
+                            }
+                            td.style.border = '1px solid black'; // Define border style
+                            td.style.padding = '8px'; // Add padding for better appearance
+                            tr.appendChild(td);
+                        }
+    
+                        // Merge remaining data into column K
+                        const remainingData = rowData.slice(10).join(' ');
+                        const tdK = document.createElement('td');
+                        tdK.textContent = remainingData;
+                        tdK.style.border = '1px solid black'; // Define border style
+                        tdK.style.padding = '8px'; // Add padding for better appearance
+                        tr.appendChild(tdK);
+    
+                        table.appendChild(tr);
+                    });
+    
+                    document.getElementById('graphContainer').style.display = 'block';
+                    document.getElementById('graphContainer1').style.display = 'block';
+                    document.getElementById('oknok').style.display = 'flex';
+                    const filteredTableContainer = document.getElementById('filteredTableContainer');
+                    filteredTableContainer.innerHTML = ''; // Clear existing content
+                    filteredTableContainer.appendChild(table);
+                    filteredTableContainer.style.display = 'block';
+    
+                    const graphData = filteredRows.map(row => {
+                        const rowData = row.trim().split(' '); // Split by space
+                        return parseFloat(rowData[6]); // Assuming column G is index 6 (zero-based)
+                    });
+    
+                    // Extract min limit and max limit
+                    const minLimitIndex = 6 + 2; 
+                    const maxLimitIndex = 6 + 3; 
+                    const minLimits = filteredRows.map(row => {
+                        const rowData = row.trim().split(' ');
+                        return parseFloat(rowData[minLimitIndex]);
+                    });
+                    const maxLimits = filteredRows.map(row => {
+                        const rowData = row.trim().split(' ');
+                        return parseFloat(rowData[maxLimitIndex]);
+                    });
+    
+                    // Calculate statistics
+                    const sum = graphData.reduce((acc, val) => acc + val, 0);
+                    const avg = sum / graphData.length;
+                    const min = Math.min(...graphData);
+                    const max = Math.max(...graphData);
+                    const median = calculateMedian(graphData);
+                    const skewness = calculateSkewness(graphData);
+                    const kurtosis = calculateKurtosis(graphData);
+                    const iqr = calculateIQR(graphData);
+                    const standardDeviation = calculateStandardDeviation(graphData);
+    
+                    // Update the HTML elements with calculated statistics
+                    document.getElementById('averageValue').textContent = avg.toFixed(4);
+                    document.getElementById('minValue').textContent = min.toFixed(4);
+                    document.getElementById('maxValue').textContent = max.toFixed(4);
+                    document.getElementById('medianValue').textContent = median.toFixed(4);
+                    document.getElementById('skewnessValue').textContent = skewness.toFixed(4);
+                    document.getElementById('kurtosisValue').textContent = kurtosis.toFixed(4);
+                    document.getElementById('iqrValue').textContent = iqr.toFixed(4);
+                    document.getElementById('standardDeviationValue').textContent = standardDeviation.toFixed(4);
+    
+                    // Clear existing chart if it exists
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+    
+                    // Create new chart
+                    const graphCanvas = document.getElementById('graphCanvas');
+                    myChart = new Chart(graphCanvas, {
+                        type: 'line',
+                        data: {
+                            labels: Array.from({ length: graphData.length }, (_, i) => i + 1), // Assuming labels are row numbers
+                            datasets: [{
+                                label: 'Variation in Data',
+                                data: graphData,
+                                borderColor: 'blue',
+                                tension: 0,
+                                borderWidth: 1,
+                                pointBorderColor: 'black',
+                                pointRadius: 0.6,
+                            }, {
+                                label: 'Average',
+                                data: Array(graphData.length).fill(avg),
+                                borderColor: 'purple',
+                                borderWidth: 0.2,
+                                pointRadius: 0,
+                                pointHoverRadius: 0,
+                            }, {
+                                label: 'Minimum Limit',
+                                data: minLimits,
+                                borderColor: 'green',
+                                borderWidth: 0.9,
+                                pointRadius: 0,
+                                pointHoverRadius: 0,
+                            }, {
+                                label: 'Maximum Limit',
+                                data: maxLimits,
+                                borderColor: 'red',
+                                borderWidth: 0.9,
+                                pointRadius: 0,
+                                pointHoverRadius: 0,
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+    
+                    const filteredContent = filteredRows.join('\n');
+                    const blob = new Blob([filteredContent], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+    
+                    const downloadLink = document.getElementById('downloadLink');
+                    downloadLink.href = url;
+                    const selectedPM = document.getElementById('filterCriteria').value;
+                    const currentDate = new Date().toISOString().slice(0, 10); // Get current date in YYYY-MM-DD format
+                    const filename = `${currentDate}_${selectedPM}.txt`;
+                    downloadLink.download = filename; // Use the generated filename
+                    downloadLink.style.display = 'block';
+                };
+    
+                reader.readAsText(file);
+            }
+    
+            // Calculate standard deviation
+            function calculateStandardDeviation(data) {
+                const mean = data.reduce((acc, val) => acc + val, 0) / data.length;
+                const squaredDifferences = data.map(val => Math.pow(val - mean, 2));
+                const variance = squaredDifferences.reduce((acc, val) => acc + val, 0) / data.length;
+                return Math.sqrt(variance);
+            }
+    
+            // Calculate median
+            function calculateMedian(data) {
+                const sortedData = data.slice().sort((a, b) => a - b);
+                const mid = Math.floor(sortedData.length / 2);
+                if (sortedData.length % 2 === 0) {
+                    return (sortedData[mid - 1] + sortedData[mid]) / 2;
+                } else {
+                    return sortedData[mid];
+                }
+            }
+    
+            // Calculate skewness
+            function calculateSkewness(data) {
+                const n = data.length;
+                const mean = data.reduce((acc, val) => acc + val, 0) / n;
+                const variance = data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+                const stdDev = Math.sqrt(variance);
+                const skewness = (1 / n) * data.reduce((acc, val) => acc + Math.pow((val - mean) / stdDev, 3), 0);
+                return skewness;
+            }
+    
+            // Calculate kurtosis
+            function calculateKurtosis(data) {
+                const n = data.length;
+                const mean = data.reduce((acc, val) => acc + val, 0) / n;
+                const variance = data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+                const stdDev = Math.sqrt(variance);
+                const kurtosis = (1 / n) * data.reduce((acc, val) => acc + Math.pow((val - mean) / stdDev, 4), 0);
+                return kurtosis;
+            }
+    
+            // Calculate interquartile range (IQR)
+            function calculateIQR(data) {
+                const sortedData = data.slice().sort((a, b) => a - b);
+                const q1Index = Math.floor(sortedData.length * 0.25);
+                const q3Index = Math.floor(sortedData.length * 0.75);
+                const q1 = sortedData[q1Index];
+                const q3 = sortedData[q3Index];
+                return q3 - q1;
+            }
+    
+            // Trigger filterRows() when the page loads initially
+            window.onload = filterRows;
+        </script>
+    </body>
+    </html>
