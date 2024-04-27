@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read Text File and Filter Lines</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./Assets/knorrbremselogo.png">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <img src="./Assets/loader.gif" alt="Loading" class="loading-spinner">
+    </div>
+    <div class="w-full fixed flex bg-gray-200 py-3 overflow-hidden shadow-xl">
+        <div class="w-1/3">
+            <img class="w-64 px-2 cursor-pointer" src="./Assets/knorrlogo2.png" alt="">
+        </div>
+        <div class="w-1/3 flex justify-center">
+            <h1 class="font-bold text-2xl">DATA ANALYSIS DASHBOARD</h1>
+        </div>
+        <div class="w-1/3 justify-end flex mr-8">
+            <h1 class="p-2 bg-red-600 hover:bg-red-900 text-white px-5 rounded-sm font-semibold cursor-pointer">Logout</h1>
+        </div>
+    </div>
+    <div class="pt-20 ">
+        <h1 class="text-lg text-center w-full text-indigo-900">Select the .txt files you want to Visualize. Process the files & download the file once processed</h1>
+    </div>
+    <div class="flex pt-2 w-full">
+        <div class="w-1/2 p-2">
+            <label for="fileInput" class="cursor-pointer bg-blue-600 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-sm">Upload Files</label>
+            <input type="file" id="fileInput" accept=".txt" multiple class="hidden">
+        </div>
+        <div class="w-1/2 flex justify-end p-2">
+            <button class="bg-blue-600 hover:bg-blue-900 mx-6 text-white font-semibold py-2 px-4 rounded-sm" id="downloadAllBtn">Download All</button>
+            <button class="bg-indigo-600 hover:bg-indigo-900 mx-6 text-white font-semibold py-2 px-4 rounded-sm" id="dashboardButton">Go to dashboard</button>
+        </div>
+    </div>
+
+    <div id="fileDetails"></div>
+
+
+
+<script>
+    document.getElementById('dashboardButton').addEventListener('click', function() {
+        window.location.href = 'dashboard2.html';
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        var files = event.target.files;
+        var allFilteredLines = []; // Array to store all filtered lines from all files
+
+        // Show loading overlay
+        document.getElementById('loadingOverlay').style.display = 'block';
+
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            var reader = new FileReader();
+
+            reader.onload = (function(file) {
+                return function(event) {
+                    var contents = event.target.result;
+                    // Remove '*' and '<' symbols from the file content
+                    contents = contents.replace(/[*<]/g, '');
+                    var lines = contents.split('\n');
+                    var filteredLines = lines.filter(function(line) {
+                        return ((line.trim().startsWith('IO') || line.trim().startsWith('V+')) && !line.includes('=')) 
+                               && !line.includes('Filtering signals');
+                    });
+
+                    // Pad the filtered lines with empty rows if necessary
+                    if (filteredLines.length < 88) {
+                        var numEmptyRowsNeeded = 88 - filteredLines.length;
+                        for (var j = 0; j < numEmptyRowsNeeded; j++) {
+                            filteredLines.push('');
+                        }
+                    }
+
+                    // Append filtered lines to allFilteredLines array
+                    allFilteredLines.push(filteredLines.join('\n'));
+
+                    // Create a heading row with the file name and column names
+                    var fileDetailsDiv = document.getElementById('fileDetails');
+                    var fileDetails = document.createElement('div');
+                    fileDetails.classList.add('mb-4');
+                    var fileNameHeading = document.createElement('h2');
+                    fileNameHeading.textContent = file.name;
+                    fileDetails.appendChild(fileNameHeading);
+                    fileDetailsDiv.appendChild(fileDetails);
+
+                    // Create the table for this file
+                    var table = document.createElement('table');
+                    var tbody = document.createElement('tbody');
+                    table.appendChild(tbody);
+                    fileDetails.appendChild(table);
+
+                    // Create the header row
+                    var headerRow = document.createElement('tr');
+                    headerRow.innerHTML = '<th>No.</th>'; // Row number column
+                    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'].forEach(function(label) {
+                        var th = document.createElement('th');
+                        th.textContent = label;
+                        headerRow.appendChild(th);
+                    });
+                    tbody.appendChild(headerRow);
+
+                    // Add data rows
+                    filteredLines.forEach(function(line, index) {
+                        var row = document.createElement('tr');
+                        var cells = line.trim().split('\t');
+                        // Add row number
+                        var rowNumberCell = document.createElement('td');
+                        rowNumberCell.textContent = index + 1;
+                        row.appendChild(rowNumberCell);
+                        // Add data cells
+                        cells.forEach(function(cellContent) {
+                            var td = document.createElement('td');
+                            td.textContent = cellContent;
+                            row.appendChild(td);
+                        });
+                        tbody.appendChild(row);
+                    });
+
+                    // Create download button for each file
+                    var downloadBtn = document.createElement('button');
+                    downloadBtn.textContent = 'Download';
+                    downloadBtn.onclick = function() {
+                        downloadFile(file.name, filteredLines.join('\n'), [file.name]);
+                    };
+                    fileDetails.appendChild(downloadBtn);
+                };
+            })(file);
+
+            reader.readAsText(file);
+        }
+
+        // Event listener for Download All button
+        document.getElementById('downloadAllBtn').addEventListener('click', function() {
+            var combinedLines = allFilteredLines.join('\n\n');
+            var currentDate = new Date();
+            var month = currentDate.getMonth() + 1; // Months are zero indexed
+            var year = currentDate.getFullYear();
+            var hours = currentDate.getHours();
+            var minutes = currentDate.getMinutes();
+            var seconds = currentDate.getSeconds();
+            var formattedDate = `${currentDate.getDate()}-${month}-${year}_${hours}-${minutes}-${seconds}`;
+            var filename = `${formattedDate}_Knorr-Bremse_Station_Data_Analysis.txt`;
+            var fileNames = Array.from(files, file => file.name); // Get array of file names
+            downloadFile(filename, combinedLines, fileNames);
+        });
+
+        // Hide loading overlay and show buttons
+        document.getElementById('loadingOverlay').style.display = 'none';
+    });   
+
+    // Function to trigger download
+    function downloadFile(filename, text) {
+        var combinedLines = text; // Initialize with the provided text
+    
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(combinedLines));
+        element.setAttribute('download', filename);
+    
+        element.style.display = 'none';
+        document.body.appendChild(element);
+    
+        element.click();
+    
+        document.body.removeChild(element);
+    }
+</script>
+
+</body>
+</html>

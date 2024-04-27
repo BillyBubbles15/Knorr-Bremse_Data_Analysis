@@ -49,7 +49,7 @@
             </div>
             <br><br>
             <div class="text-center">
-                <label for="fileInput" class="cursor-pointer bg-green-600 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded-sm">Upload File</label>
+                <label for="fileInput" class="cursor-pointer bg-blue-600 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-sm">Upload File</label>
                 <input type="file" id="fileInput" accept=".txt" multiple class="hidden" onchange="displayFileName()">
                 <p id="selectedFileName" class="mt-2"></p>
             </div>
@@ -116,17 +116,18 @@
                 </div>
             </div>
             <br><br>
+            <a class="text-right mr-12 underline text-blue-900 hover:text-blue-600 text-lg" id="downloadLink" style="display: none;">Download Filtered Rows</a>
             <div class="w-full flex">
                 <div class="w-1/2 p-4" id="graphContainer1" style="display: none;">
                     <div class="w-full grid text-white grid-cols-3 gap-y-8 text-center">
-                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Average Value <br><br><span class="text-4xl font-bold" id="averageValue"></span></p>
-                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Minimum Value <br><br><span class="text-4xl font-bold" id="minValue"></span></p>
-                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Maximum Value <br><br><span class="text-4xl font-bold" id="maxValue"></span></p>
-                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Standard Deviation <br><br><span class="text-4xl font-bold" id="standardDeviationValue"></span></p>
-                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Median <br><br><span class="text-4xl font-bold" id="medianValue"></span></p>
-                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Skewness <br><br><span class="text-4xl font-bold" id="skewnessValue"></span></p>
-                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Kurtosis <br><br><span class="text-4xl font-bold" id="kurtosisValue"></span></p>
-                        <p class="mx-2 cursor-pointer bg-blue-900 hover:bg-blue-700 border border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Interquartile Range <br><br><span class="text-4xl font-bold" id="iqrValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Average Value <br><br><span class="text-4xl font-bold" id="averageValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Minimum Value <br><br><span class="text-4xl font-bold" id="minValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Maximum Value <br><br><span class="text-4xl font-bold" id="maxValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Standard Deviation <br><br><span class="text-4xl font-bold" id="standardDeviationValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Median <br><br><span class="text-4xl font-bold" id="medianValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Skewness <br><br><span class="text-4xl font-bold" id="skewnessValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Kurtosis <br><br><span class="text-4xl font-bold" id="kurtosisValue"></span></p>
+                        <p class="mx-2 cursor-pointer bg-blue-900 border-black overflow-hidden text-lg shadow-lg py-6 rounded-lg">Interquartile Range <br><br><span class="text-4xl font-bold" id="iqrValue"></span></p>
                     </div>
                 </div>
                 <div class="w-1/2 p-4 text-sm" id="filteredTableContainer" style="display: none;">
@@ -139,9 +140,9 @@
                         <tbody id="filteredRowsBody">
                         </tbody>
                     </table>
+                    
                 </div>
             </div>
-            <a class="text-right" id="downloadLink" style="display: none;">Download Filtered Rows</a>
             <br>
         </div>
         <script>

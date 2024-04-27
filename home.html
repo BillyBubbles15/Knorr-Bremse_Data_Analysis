@@ -45,15 +45,29 @@
     </div>
   </div>
 
-  <div class="pt-24 text-center">
-    <input type="file" id="fileInput" accept=".txt" multiple>
-    <button id="processFiles" class="bg-green-600 mx-6 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded-sm">Process Files</button>
-    <button id="downloadTXT" class="hidden bg-blue-600 mx-6 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-sm">Download Generated File</button>
-    <button id="dash" class="bg-indigo-600 hover:bg-indigo-900 mx-6 text-white font-semibold py-2 px-4 rounded-sm">Go to Dashboard</button>
+  <div class="pt-20 text-center">
+    <h1 class="text-lg w-full text-indigo-900">Select the .txt files you want to Visualize. Process the files & download the file once processed</h1>
+    <div id="div" class="flex w-full">
+      <div class="w-1/2 p-2 flex justify-start">
+        <label for="fileInput" class="cursor-pointer bg-blue-600 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-sm"> <span>Select File(s)</span> </label>
+        <input type="file" id="fileInput" accept=".txt" multiple class="hidden">
+      </div>
+      <div class="w-1/2 p-2 flex justify-end">
+        <button id="downloadTXT" class="hidden bg-blue-600 mx-6 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-sm">Download Generated File</button>
+        <button id="processFiles" class="bg-green-600 mx-6 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded-sm">Process Files</button>
+        <button id="dash" class="bg-indigo-600 hover:bg-indigo-900 mx-6 text-white font-semibold py-2 px-4 rounded-sm">Go to Dashboard</button>
+      </div>
+    </div>
+
     <br><br><br><br>
     <div class="w-full justify-center" id="output"></div>
   </div>
   <script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+      window.location.href = 'index.html';
+    }
+
     document.getElementById('processFiles').addEventListener('click', function() {
         const files = document.getElementById('fileInput').files;
 
@@ -68,6 +82,8 @@
 
         // Show loading animation
         document.getElementById('loading').style.display = 'block';
+        // Hide process files and go to dashboard buttons
+        document.getElementById('div').style.display = 'flex';
 
         let processedCount = 0;
         const totalFiles = files.length;
@@ -107,6 +123,9 @@
                 if (processedCount === totalFiles) {
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('downloadTXT').classList.remove('hidden');
+                    // Show process files and go to dashboard buttons again
+                    document.getElementById('processFiles').style.display = 'flex';
+                    document.getElementById('dash').style.display = 'flex';
                 }
             };
 

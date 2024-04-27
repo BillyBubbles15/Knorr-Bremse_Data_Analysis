@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="icon" type="image/png" href="./Assets/knorrbremselogo.png">
+<title>File Reader, Row Display, and Graph Plot</title>
+<style>
+  .cell {
+    border: 1px solid #e2e8f0; /* Outline color */
+    padding: 8px; /* Cell padding */
+  }
+  #myChart {
+    display: none; /* Initially hide the canvas */
+  }
+  #statistics {
+    display: none; /* Initially hide the statistics container */
+  }
+  #skewness1{
+    display: none;
+  }
+</style>
+</head>
+<body>
+    <div class="w-full fixed flex bg-gray-200 py-3 overflow-hidden shadow-xl">
+        <div class="w-1/3">
+            <img class="w-64 px-2 cursor-pointer" src="./Assets/knorrlogo2.png" alt="">
+        </div>
+        <div class="w-1/3 flex justify-center">
+            <h1 class="font-bold text-2xl">DATA ANALYSIS DASHBOARD</h1>
+        </div>
+        <div class="w-1/3 justify-end flex px-4">
+            <h1 class="font-semibold cursor-pointer">Logout</h1>
+        </div>
+    </div>
+
+    <div class="pt-20">
+        <h1 class="text-center text-xl">Select the downloaded .txt file, select the parameter for data analysis & press filter.</h1>
+    </div>
+
+    <div class="pt-6 text-center">
+        <label for="fileInput" class="cursor-pointer bg-blue-600 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-sm">Upload File</label>
+        <input type="file" id="fileInput" accept=".txt" onchange="loadFile(event)" class="hidden">
+        <p id="selectedFileName" class="mt-2"></p>
+    </div>
+
+    <div class="pt-10 text-center">
+        <h1 class="text-xl font-semibold">&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013; Select Required Parameter &#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;&#x2013;</h1><br>
+        <select class="border border-gray-300 p-2 pr-6 overflow-hidden shadow-md outline-none rounded-sm" id="selectOption">
+          <option value="1">01: zero point correction 11SR1 to Check signals/zero point correction</option>
+          <option value="2">02: zero point correction 12SR1 to Check signals/zero point correction</option>
+          <option value="3">03: zero point correction 21SR1 to Check signals/zero point correction</option>
+          <option value="4">04: zero point correction 22SR1 to Check signals/zero point correction</option>
+          <option value="5">05: Port 22 -> 0 bar for Completion/exhaust solenoid valve</option>
+          <option value="6">06: Port 12 -> 0 bar for Completion/exhaust solenoid valve</option>
+          <option value="7">07: Port 11 -> 0 bar for Completion/exhaust solenoid valve</option>
+          <option value="8">08: Port 21 -> 0 bar for Completion/exhaust solenoid valve</option>
+          <option value="9">09: EPU -> 0,525 bar for Completion/exhaust solenoid valve</option>
+          <option value="10">10: Port 12 -> 0,4 bar for Inflating port 12 (0,5 bar)</option>
+          <option value="11">11: Switch-on current M2/NC [A] w/o offset to Start detection switch-on current M2/NC</option>
+          <option value="12">12: 200 M2/NC, Pneu. Switch-On current 0,5bar [A] to Check switch-on current M2/NC</option>
+          <option value="13">13: Port 22 -> 0,4 bar for Inflating port 22 (0,5 bar)</option>
+          <option value="14">14: Current -> 1 A for Inflating port 22 (0,5 bar)</option>
+          <option value="15">15: Switch-off current M2/NC [A] w/o offset to Start detection switch-off current M2/NC</option>
+          <option value="16">16: 201 M2/NC, Pneu. Switch-Off current 0,5bar [A] to Check switch-off current M2/NC</option>
+          <option value="17">17: Port 11 -> 13 bar for Inflating port 11/21 (13 bar)</option>
+          <option value="18">18: Port 21 -> 13 bar for Inflating port 11/21 (13 bar)</option>
+          <option value="19">19: Switch-on current M1/NO [A] w/o offset to Start detection switch-on current M1/NO</option>
+          <option value="20">20: 202 M1/NO, Pneu. Switch-On current 13bar [A] to Check switch-on current M1/NO</option>
+          <option value="21">21: Port 21 -> 0 bar for Deflating port 21 (0 bar)</option>
+          <option value="22">22: Current -> 1 A for Deflating port 21 (0 bar)</option>
+          <option value="23">23: Switch-off current M1/NO [A] w/o Offset to Start detection switch-off current M1/NO</option>
+          <option value="24">24: 203 M1/NO, Pneu. Switch-Off current 13bar [A] to Check switch-off current M2/NC</option>
+          <option value="25">25: Port 11 -> 13 bar for Inflating port 11/21 (13 bar)</option>
+          <option value="26">26: Port 21 -> 13 bar for Inflating port 11/21 (13 bar)</option>
+          <option value="27">27: Current value (reference V55 to switch-on) for Stabilization port 11/21 (13 bar)</option>
+          <option value="28">28: current increase (timestamp V01) to Switch-on M1/NO, deflate port 21, start timing</option>
+          <option value="29">29: Port 21 -> 10 bar (timestamp V12) to Switch-on M1/NO, deflate port 21, start timing</option>
+          <option value="30">30: Port 21 -> 2 bar (timestamp V02) to Switch-on M1/NO, deflate port 21, start timing</option>
+          <option value="31">31: 310 (C/C) M1/NO, Perf. Test Venting t3 [ms] for Stabilization, Check exhaust time measurement t4</option>
+          <option value="32">32: M1/NO, exhaust time t4 [ms] w/o Offset cavity 1 for Stabilization, Check exhaust time measurement t4</option>
+          <option value="33">33: 300 (C/C) M1/NO, Perf. Test Venting t4 [ms] for Stabilization, Check exhaust time measurement t4</option>
+          <option value="34">34: Current value (reference V55 for switch-off) for Stabilization, Check exhaust time measurement t4</option>
+          <option value="35">35: current decrease (timestamp V11) to Switch-off M1/NO, inflate port 21, start timing</option>
+          <option value="36">36: Port 21 -> 2 bar (timestamp V02) to Switch-off M1/NO, inflate port 21, start timing</option>
+          <option value="37">37: Port 21 -> 10 bar (timestamp V12) to Switch-off M1/NO, inflate port 21, start timing</option>
+          <option value="38">38: 311 (C/C) M1/NO, Perf. Test Filling t1 [ms] to Check load measurement t2</option>
+          <option value="39">39: M1/NO, load time t2 [ms] w/o Offset cavity 1 to Check load measurement t2</option>
+          <option value="40">40: 301 (C/C) M1/NO, Perf. Test Filling t2 [ms] to Check load measurement t2</option>
+          <option value="41">41: Port 12 -> 13 bar for Inflating port 12 (13 bar)</option>
+          <option value="42">42: Port 11 -> 0 bar for Inflating port 12 (13 bar)</option>
+          <option value="43">43: Port 21 -> 0 bar for Inflating port 12 (13 bar)</option>
+          <option value="44">44: Current value (reference V55 for switch-on) for Stabilization port 12 (13 bar)</option>
+          <option value="45">45: current increase (timestamp V01) to Switch-on M2/NC, inflate port 22, start timing</option>
+          <option value="46">46: Port 22 -> 2 bar (timestamp V12) to Switch-on M2/NC, inflate port 22, start timing</option>
+          <option value="47">47: Port 22 -> 10 bar (timestamp V02) to Switch-on M2/NC, inflate port 22, start timing</option>
+          <option value="48">48: 312 (C/C) M2/NC, Perf. Test Filling t1 [ms] for Stabilization, Check load time measurement t2</option>
+          <option value="49">49: M2/NC, load time t2 [ms] w/o Offset cavity 1 for Stabilization, Check load time measurement t2</option>
+          <option value="50">50: 302 (C/C) M2/NC, Perf. Test Filling t2 [ms] for Stabilization, Check load time measurement t2</option>
+          <option value="51">51: Current value (reference V55 for switch-off) for Stabilization, Check load time measurement t2</option>
+          <option value="52">52: current decrease (timestamp V11) to Switch-off M2/NC, deflate port 22, start timing</option>
+          <option value="53">53: Port 22 -> 10 bar (timestamp V02) to Switch-off M2/NC, deflate port 22, start timing</option>
+          <option value="54">54: Port 22 -> 2 bar (timestamp V12) to Switch-off M2/NC, deflate port 22, start timing</option>
+          <option value="55">55: 313 (C/C) M2/NC, Perf. Test Venting t3 [ms] to Check exhaust measurement t4</option>
+          <option value="56">56: M2/NC, exhaust time t4 [ms] w/o Offset cavity 1 to Check exhaust measurement t4</option>
+          <option value="57">57: 303 (C/C) M2/NC, Perf. Test Venting t4 [ms] to Check exhaust measurement t4</option>
+          <option value="58">58: EPU -> 0,525 bar for EPU -> 0,525 bar</option>
+          <option value="59">59: Port 11 -> 0,5 bar for Inflating all ports (0,5 bar)</option>
+          <option value="60">60: Port 21 -> 0,5 bar for Inflating all ports (0,5 bar)</option>
+          <option value="61">61: Port 12 -> 0,5 bar for Inflating all ports (0,5 bar)</option>
+          <option value="62">62: Port 22 -> 0,5 bar for Inflating all ports (0,5 bar)</option>
+          <option value="63">63: Leak test, port 11, pressure drop 0,5 bar to Start leakage measurement port 11/12</option>
+          <option value="64">64: Leak test, port 12, pressure drop 0,5 bar to Start leakage measurement port 11/12</option>
+          <option value="65">65: 400-1 M1/NO: 0,5bar, leckage port 11 [ml/min] for Calculation leakage port 11 (0,5 bar)</option>
+          <option value="66">66: 401-2 M2/NCon: 0,5bar, leckage port 12 [ml/min] for Calculation leakage port 12 (0,5 bar)</option>
+          <option value="67">67: Port 21 -> 0 bar for Inflating port 11 (13 bar)/deflating port 21</option>
+          <option value="68">68: Port 11 -> 13 bar for Inflating port 11 (13 bar)/deflating port 21</option>
+          <option value="69">69: Port 12 -> 13 bar for Inflating port 12 (13 bar)</option>
+          <option value="70">70: EPU 11,5 bar to Start leakage measurement port 11/12</option>
+          <option value="71">71: Leak test, port 11, pressure drop 13 bar to Start leakage measurement port 11/12'</option>
+          <option value="72">72: Leak test, port 12, pressure drop 13 bar to Start leakage measurement port 11/12</option>
+          <option value="73">73: 401-1 M1/NOon: 13bar, leckage port 11 [ml/min] for Calculation leakage port 11 (13 bar)</option>
+          <option value="74">74: 400-2 M2/NC: 13bar, leckage port 12 [ml/min] for Calculation leakage port 12 (13 bar)</option>
+          <option value="75">75: Port 21 -> 13 bar for Inflating port 21/22 (13 bar)</option>
+          <option value="76">76: Port 22 -> 13 bar for Inflating port 21/22 (13 bar)</option>
+          <option value="77">77: EPU 11,5 barto Start leakage measurement port 11/12</option>
+          <option value="78">78: Leak test, port 11, pressure drop 13 bar to Start leakage measurement port 11/12</option>
+          <option value="79">79: Leak test, port 12, pressure drop 13 bar to Start leakage measurement port 11/12</option>
+          <option value="80">80: 402-1 M1/NO: 13bar, leckage port 11 [ml/min] for Calculation leakage port 11 (13 bar)</option>
+          <option value="81">81: 402-2 M2/NCon: 13bar, leckage port 12 [ml/min] for Calculation leakage port 12 (13 bar)</option>
+          <option value="82">82: 400 (C/C) NO+NC: Leakage, not applied [ml/min] to Check leakage results</option>
+          <option value="83">83: 401 (C/C) NO+NC: Leakage, applied [ml/min] to Check leakage results</option>
+          <option value="84">84: 402 (C/C) NO+NCon: Leakage, connector [ml/min] to Check leakage results</option>
+        </select>
+        <button class="bg-blue-600 hover:bg-blue-900 text-white p-2 px-6 overflow-hidden shadow-xl rounded-sm" onclick="filterGraph()">Filter</button>
+    </div>
+
+  <br><br>
+  <br><br>
+  <div class="mx-20 flex justify-center">
+    <canvas class="bg-gray-100 cursor-pointer overflow-hidden shadow-xl" width="400" height="150" id="myChart"></canvas>
+  </div>
+  <br><br>
+  <div class="grid grid-cols-4 mx-20 gap-y-6" id="statistics">
+    <p class="grid py-8 px-4 bg-indigo-900 my-3 mx-6 text-center text-white overflow-hidden shadow-xl rounded-xl text-xl">Skewness: <br><br><span class="font-bold text-4xl" id="skewness"></span></p>
+    <p class="grid py-8 px-4 bg-indigo-900 my-3 mx-6 text-center text-white overflow-hidden shadow-xl rounded-xl text-xl">Kurtosis: <br><br><span class="font-bold text-4xl" id="kurtosis"></span></p>
+    <p class="grid py-8 px-4 bg-indigo-900 my-3 mx-6 text-center text-white overflow-hidden shadow-xl rounded-xl text-xl">IQR: <br><br><span class="font-bold text-4xl" id="iqr"></span></p>
+    <p class="grid py-8 px-4 bg-indigo-900 my-3 mx-6 text-center text-white overflow-hidden shadow-xl rounded-xl text-xl">Standard Deviation: <br><br><span class="font-bold text-4xl" id="stddev"></span></p>
+    <p class="grid py-8 px-4 bg-indigo-900 my-3 mx-6 text-center text-white overflow-hidden shadow-xl rounded-xl text-xl">Median: <br><br><span class="font-bold text-4xl" id="median"></span></p>
+    <p class="grid py-8 px-4 bg-indigo-900 my-3 mx-6 text-center text-white overflow-hidden shadow-xl rounded-xl text-xl">Mean Value: <br><br><span class="font-bold text-4xl" id="mean"></span></p>
+    <p class="grid py-8 px-4 bg-indigo-900 my-3 mx-6 text-center text-white overflow-hidden shadow-xl rounded-xl text-xl">Minimum Value: <br><br><span class="font-bold text-4xl" id="min"></span></p>
+    <p class="grid py-8 px-4 bg-indigo-900 my-3 mx-6 text-center text-white overflow-hidden shadow-xl rounded-xl text-xl">Maximum Value: <br><br><span class="font-bold text-4xl" id="max"></span></p>
+  </div>
+  <br><br>
+  
+  <table class="text-sm flex justify-center" id="dataTable" border="1">
+    <h1 id="skewness1" class="text-center justify-center text-indigo-900 font-semibold text-3xl">Filtered Rows' Table</h1><br><br>
+    <!-- Table rows will be populated dynamically -->
+  </table>
+  <br><br>
+
+  <script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+      window.location.href = 'index.html';
+    }
+    
+    let fileData = [];
+    let myChart; // Reference to the chart instance
+    
+    function loadFile(event) {
+        const input = event.target;
+        const reader = new FileReader();
+        reader.onload = function() {
+          const text = reader.result;
+          fileData = text.split('\n'); // Assuming each line represents a row
+          showRows();
+          plotGraph();
+          document.getElementById("myChart").style.display = "block"; // Show the canvas after loading the file
+          // Display the uploaded file's name
+          const fileName = input.files[0].name;
+          document.getElementById("selectedFileName").textContent = `Selected File: ${fileName}`;
+        };
+        reader.readAsText(input.files[0]);
+      }
+    
+function showRows() {
+    const selectedOption = parseInt(document.getElementById("selectOption").value);
+    const rowsToShow = [];
+
+    const targetLabels = {
+        1: ['zero point correction 11SR1', 'Check signals/zero point correction'],
+        2: ['zero point correction 12SR1', 'Check signals/zero point correction'],
+        3: ['zero point correction 21SR1', 'Check signals/zero point correction'],
+        4: ['zero point correction 22SR1', 'Check signals/zero point correction'],
+        5: ['Port 22 -> 0 bar', 'Completion/exhaust solenoid valve'],
+        6: ['Port 12 -> 0 bar', 'Completion/exhaust solenoid valve'],
+        7: ['Port 11 -> 0 bar', 'Completion/exhaust solenoid valve'],
+        8: ['Port 21 -> 0 bar', 'Completion/exhaust solenoid valve'],
+        9: ['EPU -> 0,525 bar', 'Completion/exhaust solenoid valve'],
+        10: ['Port 12 -> 0,4 bar', 'Inflating port 12 (0,5 bar)'],
+        11: ['Switch-on current M2/NC [A] w/o offset', 'Start detection switch-on current M2/NC'],
+        12: ['200 M2/NC, Pneu. Switch-On current 0,5bar [A]', 'Check switch-on current M2/NC'],
+        13: ['Port 22 -> 0,4 bar', 'Inflating port 22 (0,5 bar)'],
+        14: [ 'Current -> 1 A', 'Inflating port 22 (0,5 bar)'],
+        15: ['Switch-off current M2/NC [A] w/o offset', 'Start detection switch-off current M2/NC'],
+        16: ['201 M2/NC, Pneu. Switch-Off current 0,5bar [A]', 'Check switch-off current M2/NC'],
+        17: ['Port 11 -> 13 bar', 'Inflating port 11/21 (13 bar)'],
+        18: ['Port 21 -> 13 bar', 'Inflating port 11/21 (13 bar)'],
+        19: ['Switch-on current M1/NO [A] w/o offset', 'Start detection switch-on current M1/NO'],
+        20: ['202 M1/NO, Pneu. Switch-On current 13bar [A]', 'Check switch-on current M1/NO'],
+        21: ['Port 21 -> 0 bar', 'Deflating port 21 (0 bar)'],
+        22: ['Current -> 1 A', 'Deflating port 21 (0 bar)'],
+        23: ['Switch-off current M1/NO [A] w/o Offset', 'Start detection switch-off current M1/NO'],
+        24: ['203 M1/NO, Pneu. Switch-Off current 13bar [A]', 'Check switch-off current M2/NC'],
+        25: ['Port 11 -> 13 bar', 'Inflating port 11/21 (13 bar)'],
+        26: ['Port 21 -> 13 bar', 'Inflating port 11/21 (13 bar)'],
+        27: [ 'Current value (reference V55 for switch-on)', 'Stabilization port 11/21 (13 bar)'],
+        28: ['current increase (timestamp V01)', 'Switch-on M1/NO, deflate port 21, start timing'],
+        29: ['Port 21 -> 10 bar (timestamp V12)', 'Switch-on M1/NO, deflate port 21, start timing'],
+        30: ['Port 21 -> 2 bar (timestamp V02)', 'Switch-on M1/NO, deflate port 21, start timing'],
+        31: ['310 (C/C) M1/NO, Perf. Test Venting t3 [ms]', 'Stabilization, Check exhaust time measurement t4'],
+        32: ['M1/NO, exhaust time t4 [ms] w/o Offset cavity 1', 'Stabilization, Check exhaust time measurement t4'],
+        33: ['300 (C/C) M1/NO, Perf. Test Venting t4 [ms]', 'Stabilization, Check exhaust time measurement t4'],
+        34: ['Current value (reference V55 for switch-off)', 'Stabilization, Check exhaust time measurement t4'],
+        35: ['current decrease (timestamp V11)', 'Switch-off M1/NO, inflate port 21, start timing'],
+        36: ['Port 21 -> 2 bar (timestamp V02)', 'Switch-off M1/NO, inflate port 21, start timing'],
+        37: ['Port 21 -> 10 bar (timestamp V12)', 'Switch-off M1/NO, inflate port 21, start timing'],
+        38: ['311 (C/C) M1/NO, Perf. Test Filling t1 [ms]', 'Check load measurement t2'],
+        39: ['M1/NO, load time t2 [ms] w/o Offset cavity 1', 'Check load measurement t2'],
+        40: ['301 (C/C) M1/NO, Perf. Test Filling t2 [ms]', 'Check load measurement t2'],
+        41: ['Port 12 -> 13 bar', '	Inflating port 12 (13 bar)'],
+        42: ['Port 11 -> 0 bar', 'Inflating port 12 (13 bar)'],
+        43: ['Port 21 -> 0 bar', 'Inflating port 12 (13 bar)'],
+        44: ['Current value (reference V55 for switch-on)', 'Stabilization port 12 (13 bar)'],
+        45: ['current increase (timestamp V01)', 'Switch-on M2/NC, inflate port 22, start timing'],
+        46: ['Port 22 -> 2 bar (timestamp V12)', 'Switch-on M2/NC, inflate port 22, start timing'],
+        47: ['Port 22 -> 10 bar (timestamp V02)', 'Switch-on M2/NC, inflate port 22, start timing'],
+        48: ['312 (C/C) M2/NC, Perf. Test Filling t1 [ms]', 'Stabilization, Check load time measurement t2'],
+        49: ['M2/NC, load time t2 [ms] w/o Offset cavity 1', 'Stabilization, Check load time measurement t2'],
+        50: ['302 (C/C) M2/NC, Perf. Test Filling t2 [ms]', 'Stabilization, Check load time measurement t2'],
+        51: ['Current value (reference V55 for switch-off)', 'Stabilization, Check load time measurement t2'],
+        52: ['current decrease (timestamp V11)', 'Switch-off M2/NC, deflate port 22, start timing'],
+        53: ['Port 22 -> 10 bar (timestamp V02)', 'Switch-off M2/NC, deflate port 22, start timing'],
+        54: ['Port 22 -> 2 bar (timestamp V12)', 'Switch-off M2/NC, deflate port 22, start timing'],
+        55: ['313 (C/C) M2/NC, Perf. Test Venting t3 [ms]', 'Check exhaust measurement t4'],
+        56: ['M2/NC, exhaust time t4 [ms] w/o Offset cavity 1', 'Check exhaust measurement t4'],
+        57: ['303 (C/C) M2/NC, Perf. Test Venting t4 [ms]', 'Check exhaust measurement t4'],
+        58: ['EPU -> 0,525 bar', 'EPU -> 0,525 bar'],
+        59: ['Port 11 -> 0,5 bar', 'Inflating all ports (0,5 bar)'],
+        60: ['Port 21 -> 0,5 bar', 'Inflating all ports (0,5 bar)'],
+        61: ['Port 12 -> 0,5 bar', 'Inflating all ports (0,5 bar)'],
+        62: ['Port 22 -> 0,5 bar', 'Inflating all ports (0,5 bar)'],
+        63: ['Leak test, port 11, pressure drop 0,5 bar', 'Start leakage measurement port 11/12'],
+        64: ['Leak test, port 12, pressure drop 0,5 bar', 'Start leakage measurement port 11/12'],
+        65: ['400-1 M1/NO: 0,5bar, leckage port 11 [ml/min]', 'Calculation leakage port 11 (0,5 bar)'],
+        66: ['401-2 M2/NCon: 0,5bar, leckage port 12 [ml/min]', 'Calculation leakage port 12 (0,5 bar)'],
+        67: ['Port 21 -> 0 bar', 'Inflating port 11 (13 bar)/deflating port 21'],
+        68: ['Port 11 -> 13 bar', 'Inflating port 11 (13 bar)/deflating port 21'],
+        69: ['Port 12 -> 13 bar', 'Inflating port 12 (13 bar)'],
+        70: ['EPU 11,5 bar', 'Start leakage measurement port 11/12'],
+        71: ['Leak test, port 11, pressure drop 13 bar', 'Start leakage measurement port 11/12'],
+        72: ['Leak test, port 12, pressure drop 13 bar', 'Start leakage measurement port 11/12'],
+        73: ['401-1 M1/NOon: 13bar, leckage port 11 [ml/min]', 'Calculation leakage port 11 (13 bar)'],
+        74: ['400-2 M2/NC: 13bar, leckage port 12 [ml/min]', 'Calculation leakage port 12 (13 bar)'],
+        75: ['Port 21 -> 13 bar', 'Inflating port 21/22 (13 bar)'],
+        76: ['Port 22 -> 13 bar', 'Inflating port 21/22 (13 bar)'],
+        77: ['EPU 11,5 bar', 'Start leakage measurement port 11/12'],
+        78: ['Leak test, port 11, pressure drop 13 bar', 'Start leakage measurement port 11/12'],
+        79: ['Leak test, port 12, pressure drop 13 bar', 'Start leakage measurement port 11/12'],
+        80: ['402-1 M1/NO: 13bar, leckage port 11 [ml/min]', 'Calculation leakage port 11 (13 bar)'],
+        81: ['402-2 M2/NCon: 13bar, leckage port 12 [ml/min]', 'Calculation leakage port 12 (13 bar)'],
+        82: ['400 (C/C) NO+NC: Leakage, not applied [ml/min]', 'Check leakage results'],
+        83: ['401 (C/C) NO+NC: Leakage, applied [ml/min]', 'Check leakage results'],
+        84: ['402 (C/C) NO+NCon: Leakage, connector [ml/min]', 'Check leakage results'],
+    };
+
+    const selectedTargetLabels = targetLabels[selectedOption];
+
+    for (let i = 0; i < fileData.length; i++) {
+        const columns = fileData[i].split('\t');
+        const label1 = columns[6]; // Assuming index 7 (zero-based) holds the first label
+        const label2 = columns[20]; // Assuming index for the second label
+        if (selectedTargetLabels.includes(label1) && selectedTargetLabels.includes(label2)) {
+            rowsToShow.push(fileData[i]);
+        }
+    }
+
+    const table = document.getElementById("dataTable");
+    table.innerHTML = ""; // Clear previous content
+
+    rowsToShow.forEach((row, rowIndex) => {
+        const newRow = table.insertRow();
+        const rowNumberCell = newRow.insertCell();
+        rowNumberCell.classList.add("cell"); // Add cell class for styling
+        rowNumberCell.appendChild(document.createTextNode(rowIndex + 1));
+
+        const columns = row.split('\t'); // Split row by tab character
+        columns.forEach((column, colIndex) => {
+            const cell = newRow.insertCell();
+            cell.classList.add("cell"); // Add cell class for styling
+            cell.appendChild(document.createTextNode(column));
+        });
+    });
+}
+    
+function plotGraph() {
+    // Remove the previous chart if it exists
+    if (myChart) {
+      myChart.destroy();
+    }
+  
+    const selectedOption = parseInt(document.getElementById("selectOption").value);
+    const labels = [];
+    const valuesToPlot = [];
+  
+    const targetLabels = {
+        1: ['zero point correction 11SR1', 'Check signals/zero point correction'],
+        2: ['zero point correction 12SR1', 'Check signals/zero point correction'],
+        3: ['zero point correction 21SR1', 'Check signals/zero point correction'],
+        4: ['zero point correction 22SR1', 'Check signals/zero point correction'],
+        5: ['Port 22 -> 0 bar', 'Completion/exhaust solenoid valve'],
+        6: ['Port 12 -> 0 bar', 'Completion/exhaust solenoid valve'],
+        7: ['Port 11 -> 0 bar', 'Completion/exhaust solenoid valve'],
+        8: ['Port 21 -> 0 bar', 'Completion/exhaust solenoid valve'],
+        9: ['EPU -> 0,525 bar', 'Completion/exhaust solenoid valve'],
+        10: ['Port 12 -> 0,4 bar', 'Inflating port 12 (0,5 bar)'],
+        11: ['Switch-on current M2/NC [A] w/o offset', 'Start detection switch-on current M2/NC'],
+        12: ['200 M2/NC, Pneu. Switch-On current 0,5bar [A]', 'Check switch-on current M2/NC'],
+        13: ['Port 22 -> 0,4 bar', 'Inflating port 22 (0,5 bar)'],
+        14: [ 'Current -> 1 A', 'Inflating port 22 (0,5 bar)'],
+        15: ['Switch-off current M2/NC [A] w/o offset', 'Start detection switch-off current M2/NC'],
+        16: ['201 M2/NC, Pneu. Switch-Off current 0,5bar [A]', 'Check switch-off current M2/NC'],
+        17: ['Port 11 -> 13 bar', 'Inflating port 11/21 (13 bar)'],
+        18: ['Port 21 -> 13 bar', 'Inflating port 11/21 (13 bar)'],
+        19: ['Switch-on current M1/NO [A] w/o offset', 'Start detection switch-on current M1/NO'],
+        20: ['202 M1/NO, Pneu. Switch-On current 13bar [A]', 'Check switch-on current M1/NO'],
+        21: ['Port 21 -> 0 bar', 'Deflating port 21 (0 bar)'],
+        22: ['Current -> 1 A', 'Deflating port 21 (0 bar)'],
+        23: ['Switch-off current M1/NO [A] w/o Offset', 'Start detection switch-off current M1/NO'],
+        24: ['203 M1/NO, Pneu. Switch-Off current 13bar [A]', 'Check switch-off current M2/NC'],
+        25: ['Port 11 -> 13 bar', 'Inflating port 11/21 (13 bar)'],
+        26: ['Port 21 -> 13 bar', 'Inflating port 11/21 (13 bar)'],
+        27: [ 'Current value (reference V55 for switch-on)', 'Stabilization port 11/21 (13 bar)'],
+        28: ['current increase (timestamp V01)', 'Switch-on M1/NO, deflate port 21, start timing'],
+        29: ['Port 21 -> 10 bar (timestamp V12)', 'Switch-on M1/NO, deflate port 21, start timing'],
+        30: ['Port 21 -> 2 bar (timestamp V02)', 'Switch-on M1/NO, deflate port 21, start timing'],
+        31: ['310 (C/C) M1/NO, Perf. Test Venting t3 [ms]', 'Stabilization, Check exhaust time measurement t4'],
+        32: ['M1/NO, exhaust time t4 [ms] w/o Offset cavity 1', 'Stabilization, Check exhaust time measurement t4'],
+        33: ['300 (C/C) M1/NO, Perf. Test Venting t4 [ms]', 'Stabilization, Check exhaust time measurement t4'],
+        34: ['Current value (reference V55 for switch-off)', 'Stabilization, Check exhaust time measurement t4'],
+        35: ['current decrease (timestamp V11)', 'Switch-off M1/NO, inflate port 21, start timing'],
+        36: ['Port 21 -> 2 bar (timestamp V02)', 'Switch-off M1/NO, inflate port 21, start timing'],
+        37: ['Port 21 -> 10 bar (timestamp V12)', 'Switch-off M1/NO, inflate port 21, start timing'],
+        38: ['311 (C/C) M1/NO, Perf. Test Filling t1 [ms]', 'Check load measurement t2'],
+        39: ['M1/NO, load time t2 [ms] w/o Offset cavity 1', 'Check load measurement t2'],
+        40: ['301 (C/C) M1/NO, Perf. Test Filling t2 [ms]', 'Check load measurement t2'],
+        41: ['Port 12 -> 13 bar', '	Inflating port 12 (13 bar)'],
+        42: ['Port 11 -> 0 bar', 'Inflating port 12 (13 bar)'],
+        43: ['Port 21 -> 0 bar', 'Inflating port 12 (13 bar)'],
+        44: ['Current value (reference V55 for switch-on)', 'Stabilization port 12 (13 bar)'],
+        45: ['current increase (timestamp V01)', 'Switch-on M2/NC, inflate port 22, start timing'],
+        46: ['Port 22 -> 2 bar (timestamp V12)', 'Switch-on M2/NC, inflate port 22, start timing'],
+        47: ['Port 22 -> 10 bar (timestamp V02)', 'Switch-on M2/NC, inflate port 22, start timing'],
+        48: ['312 (C/C) M2/NC, Perf. Test Filling t1 [ms]', 'Stabilization, Check load time measurement t2'],
+        49: ['M2/NC, load time t2 [ms] w/o Offset cavity 1', 'Stabilization, Check load time measurement t2'],
+        50: ['302 (C/C) M2/NC, Perf. Test Filling t2 [ms]', 'Stabilization, Check load time measurement t2'],
+        51: ['Current value (reference V55 for switch-off)', 'Stabilization, Check load time measurement t2'],
+        52: ['current decrease (timestamp V11)', 'Switch-off M2/NC, deflate port 22, start timing'],
+        53: ['Port 22 -> 10 bar (timestamp V02)', 'Switch-off M2/NC, deflate port 22, start timing'],
+        54: ['Port 22 -> 2 bar (timestamp V12)', 'Switch-off M2/NC, deflate port 22, start timing'],
+        55: ['313 (C/C) M2/NC, Perf. Test Venting t3 [ms]', 'Check exhaust measurement t4'],
+        56: ['M2/NC, exhaust time t4 [ms] w/o Offset cavity 1', 'Check exhaust measurement t4'],
+        57: ['303 (C/C) M2/NC, Perf. Test Venting t4 [ms]', 'Check exhaust measurement t4'],
+        58: ['EPU -> 0,525 bar', 'EPU -> 0,525 bar'],
+        59: ['Port 11 -> 0,5 bar', 'Inflating all ports (0,5 bar)'],
+        60: ['Port 21 -> 0,5 bar', 'Inflating all ports (0,5 bar)'],
+        61: ['Port 12 -> 0,5 bar', 'Inflating all ports (0,5 bar)'],
+        62: ['Port 22 -> 0,5 bar', 'Inflating all ports (0,5 bar)'],
+        63: ['Leak test, port 11, pressure drop 0,5 bar', 'Start leakage measurement port 11/12'],
+        64: ['Leak test, port 12, pressure drop 0,5 bar', 'Start leakage measurement port 11/12'],
+        65: ['400-1 M1/NO: 0,5bar, leckage port 11 [ml/min]', 'Calculation leakage port 11 (0,5 bar)'],
+        66: ['401-2 M2/NCon: 0,5bar, leckage port 12 [ml/min]', 'Calculation leakage port 12 (0,5 bar)'],
+        67: ['Port 21 -> 0 bar', 'Inflating port 11 (13 bar)/deflating port 21'],
+        68: ['Port 11 -> 13 bar', 'Inflating port 11 (13 bar)/deflating port 21'],
+        69: ['Port 12 -> 13 bar', 'Inflating port 12 (13 bar)'],
+        70: ['EPU 11,5 bar', 'Start leakage measurement port 11/12'],
+        71: ['Leak test, port 11, pressure drop 13 bar', 'Start leakage measurement port 11/12'],
+        72: ['Leak test, port 12, pressure drop 13 bar', 'Start leakage measurement port 11/12'],
+        73: ['401-1 M1/NOon: 13bar, leckage port 11 [ml/min]', 'Calculation leakage port 11 (13 bar)'],
+        74: ['400-2 M2/NC: 13bar, leckage port 12 [ml/min]', 'Calculation leakage port 12 (13 bar)'],
+        75: ['Port 21 -> 13 bar', 'Inflating port 21/22 (13 bar)'],
+        76: ['Port 22 -> 13 bar', 'Inflating port 21/22 (13 bar)'],
+        77: ['EPU 11,5 bar', 'Start leakage measurement port 11/12'],
+        78: ['Leak test, port 11, pressure drop 13 bar', 'Start leakage measurement port 11/12'],
+        79: ['Leak test, port 12, pressure drop 13 bar', 'Start leakage measurement port 11/12'],
+        80: ['402-1 M1/NO: 13bar, leckage port 11 [ml/min]', 'Calculation leakage port 11 (13 bar)'],
+        81: ['402-2 M2/NCon: 13bar, leckage port 12 [ml/min]', 'Calculation leakage port 12 (13 bar)'],
+        82: ['400 (C/C) NO+NC: Leakage, not applied [ml/min]', 'Check leakage results'],
+        83: ['401 (C/C) NO+NC: Leakage, applied [ml/min]', 'Check leakage results'],
+        84: ['402 (C/C) NO+NCon: Leakage, connector [ml/min]', 'Check leakage results'],
+    };
+  
+    const selectedTargetLabels = targetLabels[selectedOption];
+    const valuesForStatistics = []; // Array to store values for calculating statistics
+  
+    for (let i = 0; i < fileData.length; i++) {
+      const columns = fileData[i].split('\t');
+      const label1 = columns[6]; // Assuming index 7 (zero-based) holds the first label
+      const label2 = columns[20]; // Assuming index for the second label
+      if (selectedTargetLabels.includes(label1) && selectedTargetLabels.includes(label2)) {
+        labels.push(label1);
+        const value = parseFloat(columns[16]); // Assuming index 17 (zero-based) holds the value
+        valuesToPlot.push(value);
+        valuesForStatistics.push(value); // Collect values for statistics
+      }
+    }
+  
+    // Calculate statistics
+    const mean = valuesForStatistics.reduce((acc, val) => acc + val, 0) / valuesForStatistics.length;
+    const sortedValues = valuesForStatistics.sort((a, b) => a - b);
+    const median = sortedValues[Math.floor(sortedValues.length / 2)];
+    const q1 = sortedValues[Math.floor(sortedValues.length / 4)];
+    const q3 = sortedValues[Math.ceil(sortedValues.length * 3 / 4)];
+    const iqr = q3 - q1;
+    const skewness = (3 * (mean - median)) / Math.sqrt(iqr);
+    const kurtosis = sortedValues.reduce((acc, val) => acc + Math.pow(val - mean, 4), 0) / sortedValues.length / Math.pow(Math.sqrt(iqr), 4);
+    const standardDeviation = Math.sqrt(sortedValues.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / sortedValues.length);
+    const min = sortedValues[0];
+    const max = sortedValues[sortedValues.length - 1];
+  
+    // Display statistics
+    document.getElementById("mean").textContent = mean.toFixed(4);
+    document.getElementById("median").textContent = median.toFixed(4);
+    document.getElementById("iqr").textContent = iqr.toFixed(4);
+    document.getElementById("skewness").textContent = skewness.toFixed(4);
+    document.getElementById("kurtosis").textContent = kurtosis.toFixed(6);
+    document.getElementById("min").textContent = min.toFixed(4);
+    document.getElementById("max").textContent = max.toFixed(4);
+    document.getElementById("stddev").textContent = max.toFixed(4);
+  
+    // Plot the chart
+    const ctx = document.getElementById('myChart').getContext('2d');
+    myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({ length: valuesToPlot.length }, (_, i) => i + 1),
+        datasets: [{
+          label: `Variation in ${selectedTargetLabels[0]}`,
+          data: valuesToPlot,
+          fill: false,
+          borderColor: 'blue',
+          tension: 0,
+          borderWidth: 1,
+          pointBorderColor: 'black',
+          pointRadius: 0.8,
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+    document.getElementById("statistics").style.display = "grid";
+    document.getElementById("skewness1").style.display = "flex";
+  }
+
+    function filterGraph() {
+      showRows(); // Refresh the filtered table
+      plotGraph(); // Update the graph based on the selected option
+    }
+  </script>
+</body>
+</html>
