@@ -48,6 +48,7 @@
 
       // Example validation (you can implement more complex validation)
       if (username === 'user' && password === 'password') {
+        localStorage.setItem('username', username);
         if (option === '1') {
           window.location.href = './home.html'; // Redirect to dashboard.html
         } else if (option === '2') {
